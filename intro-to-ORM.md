@@ -14,7 +14,7 @@ Object Relational Mapping (ORM) dalah sebuah teknik pemrograman yang mencoba unt
 ## SQLAlchemy
 
 <img src="assets/CoreORM.PNG">
-
+~Sedang dikerjakan
 ### Ide Dasar
 
 ### Instalasi
