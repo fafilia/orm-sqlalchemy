@@ -13,7 +13,7 @@ Object Relational Mapping (ORM) dalah sebuah teknik pemrograman yang mencoba unt
 
 ## SQLAlchemy
 
-<img src="assets/SQLAlchemyStructure.jpg">
+![](assets/SQLAlchemyStructure.jpg)
 
 SQLAlchemy adalah library yang menjembatani komunikasi antara program Python dengan database. Library ini mencoba untuk menerjemahkan kelas-kelas di Python ke dalam tabel relasional dan juga mengkonversi fungsi-fungsi ke dalam perintah SQL. Dalam SQLAlchemy sendiri terdapat beberapa core yang perlu dipahami peran dan kegunaannya. Secara garis besar, SQLAlchemy dibagi menjadi 2 layer utama yaitu layer SQLAlchemy ORM dan SQLAlchemy Core. Untuk lebih jelasnya, kita akan mebahasanya satu per satu di bawah ini dengan merujuk gambar struktur SQLAlchemy di atas. Untuk dapat menggunakan SQLAlchemy, terlebih dahulu kita harus mengisntall librarynya dengan perinta seperti di bawah ini:
 - Conda Installation
