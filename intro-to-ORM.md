@@ -59,4 +59,106 @@ select first 10 id, name from artists
 ```
 Karena engine yang sangat beragam, maka SQLAlchemy perlu mengetahui jenis database yang dihadapinya untuk memastikan dengan tepat permintaan apa yang akan dikeluarkan. Disinilah peran Dialect untuk membuat SQLAlchemy tahu dia akan berkomunikasi dengan database yang mana.
 
+## SQLAlchemy ORM
+
+Seperti yang telah kita bahas sebelumnya, ORM akan memetakan objek dengan database. Mapper disini memiliki tanggung jawab untuk perpindahan data antar objek dan database akan membuat mereka untuk saling independent satu dengan yang lainnya. Oleh karena itu, perlu pengkodean khusus untuk menerjemahkan skema satu dengan yang lainnya mengingat pendekatan kita yang sekarang berorientasi objek. Misal pada database chinook, kita punya tabel `artists` dan tabel `albums` dimana mereka memiliki relasi seperti seorang artis bisa jadi memiliki satu atau beberapa album. Relasi seperti ini setidaknya membutuhkan beberapa komponen yaitu tabel artis itu sendiri, kemudian tabel album, dan satu kunci atau yang serding disebut sebagai foreign key untuk membuka jalan atau mengaitkan hubungan di antara kedua tabel tersebut. Disinilah peran SQLAlchemy ORM untuk menerjemahkan tabel-tabel yang akan dipetakan dalam bentuk kelas-kelas menggunakan bahasa pemrograman Python dan mengatur perpindahan, penambahan, dan perubahan setiap kelas dari dan ke tabel database.
+
+### SLQAlchemy Data Types
+
+SQLAlchemy juga menyediakan beberapa tipe data yang umumnya kita temukan pada database relational seperti numeric, string, dates, times, boolean, dll. Selain menyediakan abstraksi dari tipe data pada umumnya tersebut, SQLAlchemy juga menyediakan mekanisme untuk menspesifikasi tipe data yang dapat kita custom sendiri. Untuk memahami tipe data pada SQLAlchemy, silahkan perhatikan contoh berikut:
+
+```
+class Artist(Base):
+    __tablename__ = 'artists'
+    ArtistId = Column(Integer, primary_key=True)
+    Name = Column(String)
+    Album = relationship("Album")
+```
+
+Pada contoh di atas, kita memiliki kelas dengan nama`Artist` yang memiliki 4 properti yaitu:
+- `__tablename__` : baris ini mengintruksikan SQLAlchemy untuk memetakan tabel `artists` ke kelas Artist.
+- `ArtistId` : primary key dari kelas Artist dan tipe datanya dalah Integer
+- `Name` : bagian ini menunjukkan bahwa kolom Name memiliki nama yang sama seperti pada tabel relationalnya dan bertipe data String
+- `Album` : bagian ini menunjukkan bahwa kelas Artist memiliki hubungan atau relasi dengan kelas Album.
+
+### SQLAlchemy Relationship Types
+
+Relasi adalah hubungan antara tabel yang mempresentasikan hubungan antar objek di dunia nyata. Relasi merupakan hubungan yang terjadi pada suatu tabel dengan lainnya yang mempresentasikan hubungan antar objek di dunia nyata dan berfungsi untuk mengatur mengatur operasi suatu database.
+Pada pembahasan sebelumnya, kita telah mengulas tipe data pada SQLAlchemy. Di bagian akhir pada contoh yang ada terdapat satu properti berupa `relationship` yang menandakan adanya hubungan antara kelas Artist dengan kelas Album. Sama halnya dengan database relational, SQLAlchemy juga mendukung beberapa tipe-tipe relationship antar kelasnya. Jenis relasi yang didukung oleh SQLAlchemy adalah `One To Many`, `Many To One`, `One To One`, dan `Many To Many`. Untuk lebih jelasnya, silahkan perhatikan penjelasan di bawah ini.
+
+#### One to Many
+
+One To Many digunakan untuk menandai bahwa instance kelas dapat berhubungan dengan banyak instance dari kelas lain. Misalnya, objek pada kelas Artist dapat memiliki relasi dengan banyak objek yanga ada di kelas Album. Dalam hal ini, SQLAlchemy akan memetakan kelas yang disebutkan dan hubungannya sebagai berikut:
+
+```
+class Artist(Base):
+    __tablename__ = 'artists'
+    ArtistId = Column(Integer, primary_key=True)
+    Name = Column(String)
+    Album = relationship("Album")
+
+class Album(Base):
+    __tablename__ = 'albums'
+    AlbumId = Column(Integer, primary_key=True)
+    Title = Column(String)
+    ArtistId = Column(Integer, ForeignKey('artists.ArtistId'))
+    Artist = relationship("Artist")
+```
+
+#### Many to One 
+
+Tipe relasi yang kedua adalah Many to One. Tipe ini sebenarnya sama dengan tipe One to Many tetapi hubungannya dijelaskan dari prespektif lain. Misalnya pada database chinook kita tahu bahwa beberapa objek pada kelas Customer dapat di tangani oleh seorang Employee. Pada kasus ini, SQLAlchemy akan memetakan kelas yang disebutkan dan hubungannya sebagai berikut: 
+
+```
+class Customer(Base):
+    __tablename__ = 'customers'
+    CustomerId = Column(Integer, primary_key=True)
+    SupportRepId = Column(Integer, ForeignKey('employees.EmployeeId'))
+    FirstName = Column(String)
+    LastName = Column(String)   
+    Company = Column(String)
+    Address = Column(String)
+    City = Column(String)
+    State = Column(String)
+    Country = Column(String)
+    PostalCode = Column(String)
+    Phone = Column(String)
+    Fax = Column(String)
+    Email = Column(String)
+    SupportRep = relationship(Employee,backref=backref('employees',uselist=True,cascade='delete,all'))
+
+class Employee(Base):
+    __tablename__ = 'employees'
+    EmployeeId = Column(Integer, primary_key=True)
+    ReportsTo = Column(Integer, ForeignKey('employees.EmployeeId'))
+    FirstName = Column(String)
+    LastName = Column(String)
+    Title = Column(String)
+    BirthDate = Column(DateTime)
+    HireDate = Column(DateTime)
+    Address = Column(String)
+```
+
+### One to One
+Tipe ketiga yaitu One To One, mengacu pada hubungan di mana instance dari kelas tertentu hanya dapat dikaitkan dengan satu instance dari kelas lain, dan sebaliknya. Berhubung pada database chinook tidak ada kelas yang memiliki hubungan One to One, Anda dapat memahaminya dengan kasus lain yang ada pada dokumentasi official SQLAlchemy berikut.
+```
+class Parent(Base):
+    __tablename__ = 'parent'
+    id = Column(Integer, primary_key=True)
+    child = relationship("Child", uselist=False, back_populates="parent")
+
+class Child(Base):
+    __tablename__ = 'child'
+    id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey('parent.id'))
+    parent = relationship("Parent", back_populates="child")
+```
+Pada contoh di atas terdapat parameter baru yang belum kita bahas sebelumnya. Parameter `uselist = False` menginstruksikan SQLAlchemy bahwa `parent` hanya akan menyimpan satu instance dan bukan array (beberapa) instance. Yang kedua parameter `back_populates` menginstruksikan SQLAlchemy untuk mengisi sisi lain dari pemetaan. 
+
+
+
+
+
+
+
 ### Implementasi 
