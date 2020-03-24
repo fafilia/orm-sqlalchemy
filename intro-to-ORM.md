@@ -155,10 +155,41 @@ class Child(Base):
 ```
 Pada contoh di atas terdapat parameter baru yang belum kita bahas sebelumnya. Parameter `uselist = False` menginstruksikan SQLAlchemy bahwa `parent` hanya akan menyimpan satu instance dan bukan array (beberapa) instance. Yang kedua parameter `back_populates` menginstruksikan SQLAlchemy untuk mengisi sisi lain dari pemetaan. 
 
+#### Many to Many
 
+Tipe terakhir yang didukung oleh SQLAlchemy adalah Many To Many. Tipe ini digunakan ketika instance dari kelas tertentu dapat memiliki nol atau lebih asosiasi untuk instance dari kelas lain. Sebagai contoh, katakanlah kita memetakan hubungan instance Track dan instance Playlist. Karena banyak lagu/track dapat ada dalam satu atau beberapa daftar playlist, maka kita akan memetakan relasinya sebagai berikut:
 
+```
+track_playlist_association = Table('playlist_track', Base.metadata, 
+    Column('TrackId', Integer, ForeignKey('tracks.TrackId')),
+    Column('PlaylistId', Integer, ForeignKey('playlists.PlaylistId'))
+)
 
+class Track(Base):
+    __tablename__ = 'tracks'
+    TrackId = Column(Integer, primary_key=True)
+    AlbumId = Column(Integer, ForeignKey('albums.AlbumId'))
+    GenreId = Column(Integer, ForeignKey('genres.GenreId'))
+    MediaTypeId = Column(Integer, ForeignKey('media_types.MediaTypeId'))
+    Name = Column(String)
+    Composer = Column(String)
+    Miliseconds = Column(Integer)
+    Bytes = Column(Integer)
+    UnitPrice = Column(Integer)
 
+    album = relationship(Album,backref=backref('albums',uselist=True,cascade='delete,all'))
+    mediatype = relationship(MediaType,backref=backref('media_type',uselist=True,cascade='delete,all'))
+    genre = relationship(Genre,backref=backref('genres',uselist=True,cascade='delete,all'))
+    playlist = relationship("Playlist",secondary=track_playlist_association)
 
+class Playlist(Base):
+    __tablename__ = 'playlists'
+    PlaylistId = Column(Integer, primary_key=True)
+    Name = Column(String)
+```
 
-### Implementasi 
+Dari contoh di atas kita membuat sebuah tabel baru yang membantu kita untuk tetap menghubungkan antara tabel `tracks` dan tabel `playlist` atau hal ini lebih dikenal sebagai tabel asosiasi. Agar SQLAlchemy dapat mengenali tabel asosiasi, kita harus menambahkan parameter `secondary` pada fungsi `relationship`. 
+
+Jika Anda telah sampai pada bagian ini, berarti Anda telah belajar banyak hal terkait ORM dan SQLAlchemy termasuk tipe data dan tipe-tipe relasi yang didukung penuh oleh SQLAlchemy. Pembahasan selanjutnya akan lebih mengarahkan Anda untuk mempraktekkan penggunaan SQLAlchemy termasuk bagimana kita akan mengatur session dan melakukan query.
+
+### SQLAlchemy Sessions
